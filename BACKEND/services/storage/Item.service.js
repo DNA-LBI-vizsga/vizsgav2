@@ -42,18 +42,14 @@ async function createItem(itemNameId, quantity){
 
 }
 
-async function deleteItem(itemNameId, storagePlaceId, description, quantity){
+async function deleteItem(itemIds){
     try{
-        const item = await Item.findOne({where:{
-            itemNameId:itemNameId,
-            storagePlaceId: storagePlaceId
-        }}); 
-        item.set({
-            description: description,
-            quantity: item.quantity-quantity
-        })
+        const item = await Item.findOne(); 
+        
+        item.destroy({where:{
+            id: itemIds
+        }})
             
-        item.save()
         
         return {message: "Item deleted"}
     }

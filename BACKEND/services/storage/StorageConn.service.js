@@ -17,6 +17,18 @@ async function storeItem(itemId, storagePlaceId) {
     }
 }
 
+async function deleteStoredItem(itemId) {
+    
+    try{
+        await StorageConn.destroy({where: {itemId: itemId}}); 
+        return  { message: "Item deleted successfully" };
+    }
+    catch(err){
+        throw new Error("Failed to delete item" + err);
+    }
+}
+
 export {
-    storeItem
+    storeItem,
+    deleteStoredItem
 };

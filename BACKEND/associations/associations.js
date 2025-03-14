@@ -24,7 +24,13 @@ StorageConn.belongsTo(StoragePlace, { foreignKey: 'storagePlaceId', onDelete: 'N
 Item.hasMany(StorageConn, { foreignKey: 'itemId', onDelete: 'NO ACTION', onUpdate: 'NO ACTION' });
 StorageConn.belongsTo(Item, { foreignKey: 'itemId', onDelete: 'NO ACTION', onUpdate: 'NO ACTION' });
 
-
+Item.addHook('beforeDestroy', async (instance, options) => {
+    await StorageConn.destroy({
+      where: {
+        itemId: instance.id
+      }
+    });
+});
 
 export{
     ItemName,

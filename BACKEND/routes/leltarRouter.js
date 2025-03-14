@@ -13,7 +13,8 @@ import { getItemNames, createItemName, updateItemName, deleteItemName } from "..
 import { getPlaces, createPlace, deletePlace } from "../services/storage/Storage.service.js"
 import { createLogs } from "../services/log/Logs.service.js"
 import { getLogs, createExcel } from "../services/log/ExcelLog.service.js"
-import { storeItem } from "../services/storage/StorageConn.service.js";
+import { storeItem, deleteStoredItem } from "../services/storage/StorageConn.service.js";
+import { StorageConn } from "../models/StorageConnModel.js";
 
 
 
@@ -171,25 +172,18 @@ router.put("/item",
             const createdBy = req.user.id
             const httpMethod = req.method
             
-            const {storagePlaceId, itemNameId, newStoragePlaceId, description, quantity} = req.body
+            const {storagePlaceId, itemId, newStoragePlaceId, description, quantity} = req.body
             
-            const item = await Item.findOne({ where: { itemNameId: itemNameId, storagePlaceId: storagePlaceId }});
+            const storageConn = await StorageConn.findOne({ where: { itemId: itemId, storagePlaceId: storagePlaceId }});
             
-            let previousQuantityFrom
-            if (item) {
-                previousQuantityFrom = item.quantity
-            }
+            
 
-            const newItem = await Item.findOne({ where: { itemNameId: itemNameId, storagePlaceId: newStoragePlaceId }});
-            let previousQuantityTo
-            if (newItem) {
-                previousQuantityTo = newItem.quantity
-            }
             
             let  quantityChangeFrom = `-${String(quantity)}`
             let  quantityChangeTo = `+${String(quantity)}`
-            await createLogs(itemNameId, storagePlaceId,  quantityChangeFrom, previousQuantityFrom,  createdBy, httpMethod)
-            await createLogs(itemNameId, newStoragePlaceId,  quantityChangeTo, previousQuantityTo,  createdBy, httpMethod)
+            
+            await createLogs(itemNameId, storagePlaceId,  quantityChangeFrom,   createdBy, httpMethod)
+            await createLogs(itemNameId, newStoragePlaceId,  quantityChangeTo,  createdBy, httpMethod)
             res.json(await updateItem(storagePlaceId, itemNameId, newStoragePlaceId, description, quantity))
         
         }
@@ -228,22 +222,23 @@ router.delete("/itemName/:id",
 })
 
 //item
-router.patch("/item",
+router.delete("/item",
     async function(req, res, next){
         try{
             const httpMethod = req.method
             const createdBy = req.user.id
-            const {itemNameId, storagePlaceId, description, quantity} = req.body
+            const {itemIds, storagePlaceId} = req.body
             
-            const item = await Item.findOne({where: {itemNameId: itemNameId, storagePlaceId: storagePlaceId}})
-            let previousQuantity
-            if (item) {
-                previousQuantity = item.quantity
-            }
-            let quantityChange = `-${String(quantity)}`
-            await createLogs(itemNameId, storagePlaceId,  quantityChange, previousQuantity,  createdBy, httpMethod)
+            let quantityChange = `-${String(itemIds.length)}`
 
-            res.json(await deleteItem(itemNameId, storagePlaceId, description, quantity))
+            itemIds.forEach(async (itemId) => {
+                console.log(itemId); 
+                await createLogs(itemId, storagePlaceId,  quantityChange,   createdBy, httpMethod)
+            });
+
+            
+            await deleteStoredItem(itemIds)
+            res.json(await deleteItem(itemIds))
         
         }
         catch(err){

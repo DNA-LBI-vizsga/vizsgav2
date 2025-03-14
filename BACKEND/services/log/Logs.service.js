@@ -10,7 +10,7 @@ async function createLogs(itemId, storagePlaceId, quantityChange, createdBy, htt
             actionType = 'ADD';
         } else if (httpMethod === "PUT") {
             actionType = 'UPDATE';
-        } else if (httpMethod === "PATCH") {
+        } else if (httpMethod === "DELETE") {
             actionType = 'DELETE';
         }
         else{ 
